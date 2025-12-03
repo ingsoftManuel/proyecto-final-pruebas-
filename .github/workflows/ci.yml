@@ -37,7 +37,7 @@ jobs:
 
     - name: Install backend dependencies
       working-directory: ./backend
-      run: npm ci
+      run: npm install
 
     - name: Run ESLint
       working-directory: ./backend
@@ -74,7 +74,7 @@ jobs:
 
     - name: Install frontend dependencies
       working-directory: ./frontend
-      run: npm ci
+      run: npm install
 
     - name: Run frontend tests
       working-directory: ./frontend
@@ -111,11 +111,11 @@ jobs:
 
     - name: Install backend dependencies
       working-directory: ./backend
-      run: npm ci
+      run: npm install
 
     - name: Install frontend dependencies
       working-directory: ./frontend
-      run: npm ci
+      run: npm install
 
     - name: Start backend server
       working-directory: ./backend
@@ -126,10 +126,20 @@ jobs:
         DB_USER: postgres
         DB_PASSWORD: postgres
         PORT: 3000
-      run: npm start &
+      run: |
+        npm start &
+        sleep 10
 
     - name: Wait for backend
-      run: npx wait-on http://localhost:3000/api/health
+      run: |
+        for i in {1..30}; do
+          if curl -f http://localhost:3000/api/health; then
+            echo "Backend is ready!"
+            break
+          fi
+          echo "Waiting for backend... ($i/30)"
+          sleep 2
+        done
 
     - name: Run E2E tests
       working-directory: ./frontend
