@@ -371,6 +371,17 @@ inventory-management-system/
 └── README.md
 ```
 
+## Demo en Vivo
+
+- **Frontend:** https://inventory-frontend-xxxx.onrender.com
+- **API Backend:** https://inventory-api-r12h.onrender.com
+- **API Health:** https://inventory-api-r12h.onrender.com/api/health
+
+El proyecto está completamente desplegado en Render con:
+- Frontend: Static Site
+- Backend: Web Service (Node.js + Express)
+- Base de Datos: PostgreSQL
+
 ---
 
 ## Cobertura de Pruebas
