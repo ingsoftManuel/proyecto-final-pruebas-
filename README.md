@@ -201,6 +201,8 @@ npm run lint
 
 ### Pruebas E2E (Cypress)
 
+Las pruebas End-to-End con Cypress están disponibles para ejecución local:
+
 **Modo Interactivo:**
 ```bash
 cd frontend
