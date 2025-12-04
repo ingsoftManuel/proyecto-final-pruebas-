@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getCategories, createProduct } from '../services/api';
+import { getCategories, createProduct, updateProduct } from '../services/api';
 
-function ProductForm({ onProductCreated }) {
+function ProductForm({ onProductCreated, editingProduct, onCancelEdit }) {
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
@@ -17,16 +17,40 @@ function ProductForm({ onProductCreated }) {
     loadCategories();
   }, []);
 
+  useEffect(() => {
+    if (editingProduct) {
+      setFormData({
+        name: editingProduct.name,
+        description: editingProduct.description || '',
+        price: editingProduct.price,
+        stock: editingProduct.stock,
+        category_id: editingProduct.category_id,
+      });
+    } else {
+      resetForm();
+    }
+  }, [editingProduct]);
+
   const loadCategories = async () => {
     try {
       const response = await getCategories();
       setCategories(response.data);
-      if (response.data.length > 0) {
+      if (response.data.length > 0 && !editingProduct) {
         setFormData((prev) => ({ ...prev, category_id: response.data[0].id }));
       }
     } catch (err) {
       console.error('Error cargando categorías:', err);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      price: '',
+      stock: '',
+      category_id: categories[0]?.id || '',
+    });
   };
 
   const handleChange = (e) => {
@@ -47,27 +71,38 @@ function ProductForm({ onProductCreated }) {
         category_id: parseInt(formData.category_id),
       };
 
-      await createProduct(productData);
-      setSuccess('Producto creado exitosamente');
-      setFormData({
-        name: '',
-        description: '',
-        price: '',
-        stock: '',
-        category_id: categories[0]?.id || '',
-      });
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, productData);
+        setSuccess('Producto actualizado exitosamente');
+      } else {
+        await createProduct(productData);
+        setSuccess('Producto creado exitosamente');
+      }
 
+      resetForm();
       if (onProductCreated) {
         onProductCreated();
       }
+      if (onCancelEdit) {
+        onCancelEdit();
+      }
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al crear el producto');
+      setError(err.response?.data?.error || 'Error al guardar el producto');
+    }
+  };
+
+  const handleCancel = () => {
+    resetForm();
+    setError('');
+    setSuccess('');
+    if (onCancelEdit) {
+      onCancelEdit();
     }
   };
 
   return (
     <div style={styles.container}>
-      <h2>Crear Producto</h2>
+      <h2>{editingProduct ? 'Editar Producto' : 'Crear Producto'}</h2>
       <form onSubmit={handleSubmit} style={styles.form}>
         <input
           type="text"
@@ -123,9 +158,20 @@ function ProductForm({ onProductCreated }) {
             </option>
           ))}
         </select>
-        <button type="submit" style={styles.button} data-testid="create-product-button">
-          Crear Producto
-        </button>
+        <div style={styles.buttonContainer}>
+          <button type="submit" style={styles.button} data-testid="create-product-button">
+            {editingProduct ? 'Actualizar' : 'Crear'} Producto
+          </button>
+          {editingProduct && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              style={styles.cancelButton}
+            >
+              Cancelar
+            </button>
+          )}
+        </div>
       </form>
 
       {error && <div style={styles.error}>{error}</div>}
@@ -166,10 +212,25 @@ const styles = {
     borderRadius: '4px',
     border: '1px solid #ddd',
   },
+  buttonContainer: {
+    display: 'flex',
+    gap: '10px',
+  },
   button: {
+    flex: 1,
     padding: '12px',
     fontSize: '16px',
     backgroundColor: '#2196F3',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  cancelButton: {
+    flex: 1,
+    padding: '12px',
+    fontSize: '16px',
+    backgroundColor: '#757575',
     color: 'white',
     border: 'none',
     borderRadius: '4px',

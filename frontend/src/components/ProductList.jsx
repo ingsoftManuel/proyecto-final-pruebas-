@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getProducts, deleteProduct } from '../services/api';
 
-function ProductList() {
+function ProductList({ onEditProduct }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,6 +36,12 @@ function ProductList() {
     }
   };
 
+  const handleEdit = (product) => {
+    if (onEditProduct) {
+      onEditProduct(product);
+    }
+  };
+
   if (loading) return <div>Cargando productos...</div>;
   if (error) return <div style={styles.error}>{error}</div>;
 
@@ -67,6 +73,13 @@ function ProductList() {
                 <td style={styles.td}>{product.stock}</td>
                 <td style={styles.td}>{product.category_name || 'Sin categoría'}</td>
                 <td style={styles.td}>
+                  <button
+                    onClick={() => handleEdit(product)}
+                    style={styles.editButton}
+                    data-testid={`edit-product-${product.id}`}
+                  >
+                    Editar
+                  </button>
                   <button
                     onClick={() => handleDelete(product.id)}
                     style={styles.deleteButton}
@@ -105,6 +118,15 @@ const styles = {
   td: {
     padding: '12px',
     borderBottom: '1px solid #ddd',
+  },
+  editButton: {
+    padding: '6px 12px',
+    backgroundColor: '#FF9800',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    marginRight: '5px',
   },
   deleteButton: {
     padding: '6px 12px',
